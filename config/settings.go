@@ -1,4 +1,4 @@
-package tests
+package config
 
 var Port = 7540
 var DBFile = "../scheduler.db"

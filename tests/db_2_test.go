@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"go_final_project/config"
 	"os"
 	"testing"
 	"time"
@@ -24,7 +25,7 @@ func count(db *sqlx.DB) (int, error) {
 }
 
 func openDB(t *testing.T) *sqlx.DB {
-	dbfile := DBFile
+	dbfile := config.DBFile
 	envFile := os.Getenv("TODO_DBFILE")
 	if len(envFile) > 0 {
 		dbfile = envFile
