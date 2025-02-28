@@ -12,7 +12,7 @@ const logDir = "logs"
 
 func init() {
 	if err := os.MkdirAll(logDir, os.ModePerm); err != nil {
-		log.Fatalf("[ERROR] Директории логов не создана: %v", err)
+		log.Fatalf("[ERROR] Папка для логов не создана: %v", err)
 	}
 }
 
@@ -32,7 +32,11 @@ func LogMessage(logsType, message string) error {
 	}
 	defer file.Close()
 
-	logger := log.New(file, "", log.LstdFlags)
-	logger.Println(message)
+	timestamp := time.Now().Format("02.01.2006 15:04:05")
+	formattedMessage := fmt.Sprintf("[%s] %s", timestamp, message)
+
+	logger := log.New(file, "", 0)
+	logger.Println(formattedMessage)
+
 	return nil
 }
