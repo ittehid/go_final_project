@@ -5,6 +5,7 @@ import (
 	"go_final_project/config"
 	"go_final_project/internal/database"
 	"go_final_project/internal/logger"
+	"go_final_project/internal/scheduler"
 	"net/http"
 	"os"
 )
@@ -33,6 +34,8 @@ func getPort() string {
 }
 
 func runServer(port string) error {
+	db := database.GetDB()
+	http.HandleFunc("/api/nextdate", scheduler.NextDateHandler(db))
 	http.Handle("/", http.FileServer(http.Dir("web")))
 	return http.ListenAndServe(":"+port, nil)
 }

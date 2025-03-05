@@ -1,15 +1,16 @@
 package database
 
 import (
-	"database/sql"
 	"fmt"
 	"go_final_project/config"
 	"go_final_project/internal/logger"
-	_ "modernc.org/sqlite"
 	"os"
+
+	"github.com/jmoiron/sqlx"
+	_ "modernc.org/sqlite"
 )
 
-var DB *sql.DB
+var DB *sqlx.DB
 
 func InitDB() error {
 	dbFile := config.GetDBFilePath()
@@ -18,7 +19,7 @@ func InitDB() error {
 	_, err := os.Stat(dbFile)
 	install := os.IsNotExist(err)
 
-	db, err := sql.Open("sqlite", dbFile)
+	db, err := sqlx.Open("sqlite", dbFile) // Используем sqlx.Open
 	if err != nil {
 		return fmt.Errorf("не удалось открыть базу данных: %v", err)
 	}
@@ -49,7 +50,7 @@ func createTables() error {
 	_, err := DB.Exec(query)
 	if err != nil {
 		logger.LogMessage("database", fmt.Sprintf("[ERROR] Ошибка создания таблицы: %v", err))
-		return fmt.Errorf("ошибка создания таблицы: %v", err) // Теперь ошибка передаётся дальше
+		return fmt.Errorf("ошибка создания таблицы: %v", err)
 	}
 
 	return nil
@@ -61,4 +62,8 @@ func CloseDB() {
 			logger.LogMessage("database", fmt.Sprintf("[ERROR] Ошибка при закрытии базы данных: %v", err))
 		}
 	}
+}
+
+func GetDB() *sqlx.DB {
+	return DB
 }
