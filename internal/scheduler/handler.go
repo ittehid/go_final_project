@@ -3,11 +3,9 @@ package scheduler
 import (
 	"net/http"
 	"time"
-
-	"github.com/jmoiron/sqlx"
 )
 
-func NextDateHandler(dbase *sqlx.DB) http.HandlerFunc {
+func NextDateHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		nowStr := req.URL.Query().Get("now")
 		dateStr := req.URL.Query().Get("date")

@@ -6,6 +6,7 @@ import (
 	"go_final_project/internal/database"
 	"go_final_project/internal/logger"
 	"go_final_project/internal/scheduler"
+	"go_final_project/internal/task"
 	"net/http"
 	"os"
 )
@@ -35,7 +36,8 @@ func getPort() string {
 
 func runServer(port string) error {
 	db := database.GetDB()
-	http.HandleFunc("/api/nextdate", scheduler.NextDateHandler(db))
+	http.HandleFunc("/api/nextdate", scheduler.NextDateHandler())
+	http.HandleFunc("/api/task", task.AddTaskHandler(db))
 	http.Handle("/", http.FileServer(http.Dir("web")))
 	return http.ListenAndServe(":"+port, nil)
 }
