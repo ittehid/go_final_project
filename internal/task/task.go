@@ -13,14 +13,14 @@ import (
 
 // Task — структура задачи
 type Task struct {
-	ID      int    `db:"id" json:"id"`
+	ID      string `db:"id" json:"id"`
 	Date    string `db:"date" json:"date"`
 	Title   string `db:"title" json:"title"`
 	Comment string `db:"comment" json:"comment,omitempty"`
 	Repeat  string `db:"repeat" json:"repeat,omitempty"`
 }
 
-// AddTaskHandler обрабатывает HTTP-запросы
+// AddTaskHandler обрабатывает HTTP-запросы для добавления задач
 func AddTaskHandler(db *sqlx.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
@@ -32,7 +32,7 @@ func AddTaskHandler(db *sqlx.DB) http.HandlerFunc {
 	}
 }
 
-// addTask обрабатывает POST-запрос
+// addTask обрабатывает POST-запрос для добавления задачи
 func addTask(w http.ResponseWriter, r *http.Request, db *sqlx.DB) {
 	var task Task
 	if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
@@ -114,4 +114,73 @@ func (t *Task) Save(db *sqlx.DB) (int64, error) {
 		return 0, errors.New("ошибка сохранения в БД")
 	}
 	return res.LastInsertId()
+}
+
+// GetTasksHandler обрабатывает HTTP-запросы для получения задач
+func GetTasksHandler(db *sqlx.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			getTasks(w, r, db)
+		default:
+			http.Error(w, `{"error":"метод не поддерживается"}`, http.StatusMethodNotAllowed)
+		}
+	}
+}
+
+// getTasks обрабатывает GET-запрос для получения задач
+func getTasks(w http.ResponseWriter, r *http.Request, db *sqlx.DB) {
+	// Получаем параметр search из URL
+	search := r.URL.Query().Get("search")
+	limit := 50 // Лимит на количество задач
+
+	var query string
+	var args []interface{}
+
+	// Если search соответствует формату даты, то ищем задачи по дате
+	if isValidDateFormat(search) {
+		dateFilter := convertToDBDateFormat(search)
+		query = "SELECT id, date, title, comment, repeat FROM scheduler WHERE date = ? ORDER BY date LIMIT ?"
+		args = append(args, dateFilter, limit)
+	} else if search != "" {
+		// Иначе ищем по строкам title и comment
+		query = "SELECT id, date, title, comment, repeat FROM scheduler WHERE title LIKE ? OR comment LIKE ? ORDER BY date LIMIT ?"
+		args = append(args, "%"+search+"%", "%"+search+"%", limit)
+	} else {
+		// Если search пустой, возвращаем все задачи, отсортированные по дате
+		query = "SELECT id, date, title, comment, repeat FROM scheduler ORDER BY date LIMIT ?"
+		args = append(args, limit)
+	}
+
+	// Выполняем запрос к базе данных
+	var tasks []Task
+	err := db.Select(&tasks, query, args...)
+	if err != nil {
+		http.Error(w, `{"error":"ошибка при извлечении данных"}`, http.StatusInternalServerError)
+		return
+	}
+
+	// Формируем ответ в формате JSON
+	w.Header().Set("Content-Type", "application/json")
+	if len(tasks) == 0 {
+		tasks = []Task{} // Чтобы не вернуть null в JSON
+	}
+
+	response := map[string]interface{}{
+		"tasks": tasks,
+	}
+
+	json.NewEncoder(w).Encode(response)
+}
+
+// isValidDateFormat проверяет, соответствует ли строка формату даты "DD.MM.YYYY"
+func isValidDateFormat(dateStr string) bool {
+	_, err := time.Parse("02.01.2006", dateStr)
+	return err == nil
+}
+
+// convertToDBDateFormat преобразует дату в формат "YYYYMMDD", который используется в базе
+func convertToDBDateFormat(dateStr string) string {
+	t, _ := time.Parse("02.01.2006", dateStr)
+	return t.Format("20060102")
 }

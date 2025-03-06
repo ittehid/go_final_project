@@ -38,6 +38,7 @@ func runServer(port string) error {
 	db := database.GetDB()
 	http.HandleFunc("/api/nextdate", scheduler.NextDateHandler())
 	http.HandleFunc("/api/task", task.AddTaskHandler(db))
+	http.HandleFunc("/api/tasks", task.GetTasksHandler(db))
 	http.Handle("/", http.FileServer(http.Dir("web")))
 	return http.ListenAndServe(":"+port, nil)
 }
