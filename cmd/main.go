@@ -42,15 +42,19 @@ func runServer(port string) error {
 	http.HandleFunc("/api/task", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:
-			task.AddTaskHandler(db)(w, r) // добавление новой задачи
+			task.AddTaskHandler(db)(w, r)
 		case http.MethodGet:
-			task.GetTaskHandler(db)(w, r) // получение задачи по id
+			task.GetTaskHandler(db)(w, r)
 		case http.MethodPut:
-			task.EditTaskHandler(db)(w, r) // обновление существующей задачи
+			task.EditTaskHandler(db)(w, r)
+		case http.MethodDelete:
+			task.DoneTaskHandler(db)(w, r)
 		default:
 			http.Error(w, `{"error":"Метод не поддерживается"}`, http.StatusMethodNotAllowed)
 		}
 	})
+
+	http.HandleFunc("/api/task/done", task.DoneTaskHandler(db))
 
 	http.HandleFunc("/api/tasks", task.GetTasksHandler(db))
 
