@@ -36,9 +36,24 @@ func getPort() string {
 
 func runServer(port string) error {
 	db := database.GetDB()
+
 	http.HandleFunc("/api/nextdate", scheduler.NextDateHandler())
-	http.HandleFunc("/api/task", task.AddTaskHandler(db))
+
+	http.HandleFunc("/api/task", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			task.AddTaskHandler(db)(w, r) // добавление новой задачи
+		case http.MethodGet:
+			task.GetTaskHandler(db)(w, r) // получение задачи по id
+		case http.MethodPut:
+			task.EditTaskHandler(db)(w, r) // обновление существующей задачи
+		default:
+			http.Error(w, `{"error":"Метод не поддерживается"}`, http.StatusMethodNotAllowed)
+		}
+	})
+
 	http.HandleFunc("/api/tasks", task.GetTasksHandler(db))
+
 	http.Handle("/", http.FileServer(http.Dir("web")))
 	return http.ListenAndServe(":"+port, nil)
 }
