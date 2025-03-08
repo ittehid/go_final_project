@@ -27,6 +27,6 @@
 **Запуск контейнера Docker**
 1. База данных в проекте находится: `D:\Dev\go_final_project\data`
 2. Запустите контейнер следующей командой:
-   `docker run -d -p 7540:7540 -v D:\Dev\go_final_project\data:/app/data -e TODO_PASSWORD=12345 todo_scheduler`
+   `docker run -d -p 7540:7540 -v D:\Dev\go_final_project\data:/app/data -e TODO_PASSWORD=12345 go_final_project`
 2. После этого приложение будет доступно по адресу:
    `http://localhost:7540`
