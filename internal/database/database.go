@@ -19,20 +19,23 @@ func InitDB() error {
 	_, err := os.Stat(dbFile)
 	install := os.IsNotExist(err)
 
-	db, err := sqlx.Open("sqlite", dbFile) // Используем sqlx.Open
+	db, err := sqlx.Open("sqlite", dbFile)
 	if err != nil {
+		logger.LogMessage("database", fmt.Sprintf("[ERROR] Не удалось открыть базу данных: %v", err))
 		return fmt.Errorf("не удалось открыть базу данных: %v", err)
 	}
 
 	DB = db
 	if install {
+		logger.LogMessage("database", "[INFO] База данных не найдена, начинаем создание таблиц")
 		if err := createTables(); err != nil {
+			logger.LogMessage("database", fmt.Sprintf("[ERROR] Ошибка при создании таблиц: %v", err))
 			db.Close()
 			return err
 		}
 		logger.LogMessage("database", "[INFO] База данных создана.")
 	}
-
+	logger.LogMessage("database", "[INFO] Инициализация базы данных завершена успешно")
 	return nil
 }
 

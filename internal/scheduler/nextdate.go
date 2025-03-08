@@ -97,7 +97,7 @@ func everyMonth(date, now time.Time, days []string) (string, error) {
 		for _, dayStr := range days {
 			targetDay, err := strconv.Atoi(dayStr)
 			if err != nil || targetDay < 1 || targetDay > 31 {
-				return "", fmt.Errorf("еверный день в правиле месяца: %v", dayStr)
+				return "", fmt.Errorf("неверный день в правиле месяца: %v", dayStr)
 			}
 
 			newDate := time.Date(date.Year(), month, targetDay, 0, 0, 0, 0, time.Local)
