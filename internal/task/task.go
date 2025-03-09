@@ -134,7 +134,7 @@ func GetTasksHandler(db *sqlx.DB) http.HandlerFunc {
 func getTasks(w http.ResponseWriter, r *http.Request, db *sqlx.DB) {
 	// Получаем параметр search из URL
 	search := r.URL.Query().Get("search")
-	limit := 50 // Лимит на количество задач
+	limit := internal.TaskLimit
 
 	var query string
 	var args []interface{}
