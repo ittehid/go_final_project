@@ -14,7 +14,18 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var jwtSecret = []byte("my_jwt_secret_key")
+var (
+	jwtSecret    = []byte("my_jwt_secret_key")
+	todoPassword string
+)
+
+func initConfig() {
+	todoPassword = os.Getenv("TODO_PASSWORD")
+}
+
+func init() {
+	initConfig()
+}
 
 type Credentials struct {
 	Password string `json:"password"`
@@ -28,14 +39,13 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	expectedPassword := os.Getenv("TODO_PASSWORD")
-	if expectedPassword == "" || creds.Password != expectedPassword {
+	if todoPassword == "" || creds.Password != todoPassword {
 		logger.LogMessage("auth", "[ERROR] Неверная попытка авторизации")
 		http.Error(w, `{"error":"Неверный пароль"}`, http.StatusUnauthorized)
 		return
 	}
 
-	passwordHash := sha256.Sum256([]byte(expectedPassword))
+	passwordHash := sha256.Sum256([]byte(todoPassword))
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"passwordHash": hex.EncodeToString(passwordHash[:]),
@@ -55,8 +65,7 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 
 func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		pass := os.Getenv("TODO_PASSWORD")
-		if pass != "" {
+		if todoPassword != "" {
 			cookie, err := r.Cookie("token")
 			if err != nil {
 				logger.LogMessage("auth", "[ERROR] Отсутствует токен в куки")
@@ -81,7 +90,7 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 				return
 			}
 
-			passwordHash := sha256.Sum256([]byte(pass))
+			passwordHash := sha256.Sum256([]byte(todoPassword))
 			if claims["passwordHash"] != hex.EncodeToString(passwordHash[:]) {
 				logger.LogMessage("auth", "[ERROR] Токен не соответствует текущему паролю")
 				http.Error(w, "Требуется аутентификация", http.StatusUnauthorized)
