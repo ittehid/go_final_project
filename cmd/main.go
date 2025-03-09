@@ -39,36 +39,20 @@ func getPort() string {
 
 func runServer(port string) error {
 	db := database.GetDB()
+	mux := http.NewServeMux()
 
-	http.HandleFunc("/api/nextdate", scheduler.NextDateHandler())
+	mux.HandleFunc("POST /api/task", task.AddTaskHandler(db))
+	mux.HandleFunc("GET /api/task", task.GetTaskHandler(db))
+	mux.HandleFunc("PUT /api/task", task.EditTaskHandler(db))
+	mux.HandleFunc("DELETE /api/task", task.DoneTaskHandler(db))
 
-	http.HandleFunc("/api/task", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodPost:
-			logger.LogMessage("api", "[INFO] POST-запрос на добавление задачи")
-			task.AddTaskHandler(db)(w, r)
-		case http.MethodGet:
-			logger.LogMessage("api", "[INFO] GET-запрос на получение задачи")
-			task.GetTaskHandler(db)(w, r)
-		case http.MethodPut:
-			logger.LogMessage("api", "[INFO] PUT-запрос на изменение задачи")
-			task.EditTaskHandler(db)(w, r)
-		case http.MethodDelete:
-			logger.LogMessage("api", "[INFO] DELETE-запрос на завершение задачи")
-			task.DoneTaskHandler(db)(w, r)
-		default:
-			logger.LogMessage("api", fmt.Sprintf("[ERROR] Неподдерживаемый метод запроса: %s", r.Method))
-			http.Error(w, `{"error":"Метод не поддерживается"}`, http.StatusMethodNotAllowed)
-		}
-	})
+	mux.HandleFunc("/api/nextdate", scheduler.NextDateHandler())
+	mux.Handle("/api/task/done", scheduler.AuthMiddleware(task.DoneTaskHandler(db)))
+	mux.Handle("/api/tasks", scheduler.AuthMiddleware(task.GetTasksHandler(db)))
 
-	http.HandleFunc("/api/task/done", scheduler.AuthMiddleware(task.DoneTaskHandler(db)))
-	http.HandleFunc("/api/tasks", scheduler.AuthMiddleware(task.GetTasksHandler(db)))
-
-	http.Handle("/", http.FileServer(http.Dir("web")))
-
-	http.HandleFunc("/api/signin", scheduler.SignInHandler)
+	mux.Handle("/", http.FileServer(http.Dir("web")))
+	mux.HandleFunc("/api/signin", scheduler.SignInHandler)
 
 	logger.LogMessage("server", "[INFO] Обработчики запросов успешно зарегистрированы")
-	return http.ListenAndServe(":"+port, nil)
+	return http.ListenAndServe(":"+port, mux)
 }
