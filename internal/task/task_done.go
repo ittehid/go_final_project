@@ -3,10 +3,12 @@ package task
 import (
 	"encoding/json"
 	"errors"
-	"go_final_project/internal/scheduler"
 	"log"
 	"net/http"
 	"time"
+
+	"go_final_project/internal"
+	"go_final_project/internal/scheduler"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -42,7 +44,7 @@ func DoneTaskHandler(db *sqlx.DB) http.HandlerFunc {
 					return
 				}
 			} else {
-				today, _ := time.Parse("20060102", task.Date)
+				today, _ := time.Parse(internal.DateLayout, task.Date)
 				nextDate, err := scheduler.NextDate(today, task.Date, task.Repeat)
 				if err != nil {
 					http.Error(w, `{"error":"ошибка расчёта следующей даты"}`, http.StatusInternalServerError)
@@ -92,5 +94,3 @@ func updateTaskDate(db *sqlx.DB, id, date string) error {
 	}
 	return nil
 }
-
-// Вспомогательная функция getTaskByID уже есть у тебя в task_edit.go, убедись что она доступна и используется отсюда.

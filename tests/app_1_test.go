@@ -2,7 +2,6 @@ package tests
 
 import (
 	"fmt"
-	"go_final_project/config"
 	"io"
 	"net/http"
 	"os"
@@ -15,7 +14,7 @@ import (
 )
 
 func getURL(path string) string {
-	port := config.Port
+	port := Port
 	envPort := os.Getenv("TODO_PORT")
 	if len(envPort) > 0 {
 		if eport, err := strconv.ParseInt(envPort, 10, 32); err == nil {

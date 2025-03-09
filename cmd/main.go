@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-	"go_final_project/config"
+	"net/http"
+	"os"
+
 	"go_final_project/internal/database"
 	"go_final_project/internal/logger"
 	"go_final_project/internal/scheduler"
 	"go_final_project/internal/task"
-	"net/http"
-	"os"
+	"go_final_project/tests"
 )
 
 func main() {
@@ -33,7 +34,7 @@ func getPort() string {
 	if reqPort != "" {
 		return reqPort
 	}
-	return fmt.Sprintf("%d", config.Port)
+	return fmt.Sprintf("%d", tests.Port)
 }
 
 func runServer(port string) error {

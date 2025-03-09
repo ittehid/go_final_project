@@ -2,7 +2,6 @@ package tests
 
 import (
 	"fmt"
-	"go_final_project/config"
 	"net/url"
 	"strings"
 	"testing"
@@ -54,7 +53,7 @@ func TestNextDate(t *testing.T) {
 		}
 	}
 	check()
-	if !config.FullNextDate {
+	if !FullNextDate {
 		return
 	}
 	tbl = []nextDate{

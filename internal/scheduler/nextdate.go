@@ -2,19 +2,20 @@ package scheduler
 
 import (
 	"fmt"
+
 	"strconv"
 	"strings"
 	"time"
-)
 
-const layoutDate = "20060102"
+	"go_final_project/internal"
+)
 
 func NextDate(now time.Time, date string, repeat string) (string, error) {
 	if repeat == "" {
 		return "", fmt.Errorf("повтор пуст")
 	}
 
-	validDate, err := time.Parse(layoutDate, date)
+	validDate, err := time.Parse(internal.DateLayout, date)
 	if err != nil {
 		return "", fmt.Errorf("неправильная дата %v", err)
 	}
@@ -63,7 +64,7 @@ func everyDay(now, date time.Time, daysStr string) (string, error) {
 		resultDate = resultDate.AddDate(0, 0, d)
 	}
 
-	return resultDate.Format(layoutDate), nil
+	return resultDate.Format(internal.DateLayout), nil
 }
 
 func everyWeek(date, now time.Time, daysStr string) (string, error) {
@@ -85,7 +86,7 @@ func everyWeek(date, now time.Time, daysStr string) (string, error) {
 		}
 
 		if validDays[weekDay] {
-			return date.Format(layoutDate), nil
+			return date.Format(internal.DateLayout), nil
 		}
 		date = date.AddDate(0, 0, 1)
 	}
@@ -105,7 +106,7 @@ func everyMonth(date, now time.Time, days []string) (string, error) {
 				continue
 			}
 
-			return newDate.Format(layoutDate), nil
+			return newDate.Format(internal.DateLayout), nil
 		}
 
 		// Переход к следующему месяцу
@@ -126,5 +127,5 @@ func everyYear(now, date time.Time) (string, error) {
 	}
 
 	// Возвращаем дату в формате 20060102
-	return date.Format(layoutDate), nil
+	return date.Format(internal.DateLayout), nil
 }

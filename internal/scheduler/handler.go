@@ -2,9 +2,11 @@ package scheduler
 
 import (
 	"fmt"
-	"go_final_project/internal/logger"
 	"net/http"
 	"time"
+
+	"go_final_project/internal"
+	"go_final_project/internal/logger"
 )
 
 func NextDateHandler() http.HandlerFunc {
@@ -20,7 +22,7 @@ func NextDateHandler() http.HandlerFunc {
 			return
 		}
 
-		if _, err := time.Parse("20060102", dateStr); err != nil {
+		if _, err := time.Parse(internal.DateLayout, dateStr); err != nil {
 			logger.LogMessage("scheduler", fmt.Sprintf("[ERROR] Некорректный параметр 'date': %v", err))
 			http.Error(w, "некорректный параметр 'date'", http.StatusBadRequest)
 			return
@@ -45,5 +47,5 @@ func parseNow(nowStr string) (time.Time, error) {
 	if nowStr == "" {
 		return time.Now(), nil
 	}
-	return time.Parse("20060102", nowStr)
+	return time.Parse(internal.DateLayout, nowStr)
 }

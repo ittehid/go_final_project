@@ -3,10 +3,12 @@ package task
 import (
 	"encoding/json"
 	"errors"
-	"go_final_project/internal/scheduler"
 	"log"
 	"net/http"
 	"time"
+
+	"go_final_project/internal"
+	"go_final_project/internal/scheduler"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -72,9 +74,9 @@ func (t *Task) Validate() error {
 		return errors.New("не указан заголовок задачи")
 	}
 	if t.Date == "" {
-		t.Date = time.Now().Format("20060102")
+		t.Date = time.Now().Format(internal.DateLayout)
 	}
-	if _, err := time.Parse("20060102", t.Date); err != nil {
+	if _, err := time.Parse(internal.DateLayout, t.Date); err != nil {
 		return errors.New("дата указана в неверном формате YYYYMMDD")
 	}
 	return nil
@@ -82,14 +84,14 @@ func (t *Task) Validate() error {
 
 // AdjustDate корректирует дату, если она в прошлом
 func (t *Task) AdjustDate() error {
-	todayStr := time.Now().Format("20060102")
+	todayStr := time.Now().Format(internal.DateLayout)
 
 	// Проверяем, является ли дата задачи прошлой
 	if t.Date < todayStr {
 		if t.Repeat == "" {
 			t.Date = todayStr
 		} else {
-			currentDate, err := time.Parse("20060102", todayStr)
+			currentDate, err := time.Parse(internal.DateLayout, todayStr)
 			if err != nil {
 				return errors.New("ошибка обработки даты")
 			}
@@ -175,12 +177,12 @@ func getTasks(w http.ResponseWriter, r *http.Request, db *sqlx.DB) {
 
 // isValidDateFormat проверяет, соответствует ли строка формату даты "DD.MM.YYYY"
 func isValidDateFormat(dateStr string) bool {
-	_, err := time.Parse("02.01.2006", dateStr)
+	_, err := time.Parse(internal.DateFormatDDMMYYYY, dateStr)
 	return err == nil
 }
 
 // convertToDBDateFormat преобразует дату в формат "YYYYMMDD", который используется в базе
 func convertToDBDateFormat(dateStr string) string {
-	t, _ := time.Parse("02.01.2006", dateStr)
-	return t.Format("20060102")
+	t, _ := time.Parse(internal.DateFormatDDMMYYYY, dateStr)
+	return t.Format(internal.DateLayout)
 }

@@ -3,7 +3,6 @@ package tests
 import (
 	"encoding/json"
 	"fmt"
-	"go_final_project/config"
 	"net/http"
 	"testing"
 	"time"
@@ -27,7 +26,7 @@ func addTask(t *testing.T, task task) string {
 
 func getTasks(t *testing.T, search string) []map[string]string {
 	url := "api/tasks"
-	if config.Search {
+	if Search {
 		url += "?search=" + search
 	}
 	body, err := requestJSON(url, nil, http.MethodGet)
@@ -98,7 +97,7 @@ func TestTasks(t *testing.T) {
 	tasks = getTasks(t, "")
 	assert.Equal(t, len(tasks), 6)
 
-	if !config.Search {
+	if !Search {
 		return
 	}
 	tasks = getTasks(t, "УК")

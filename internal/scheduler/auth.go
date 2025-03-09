@@ -5,10 +5,11 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"go_final_project/internal/logger"
 	"net/http"
 	"os"
 	"time"
+
+	"go_final_project/internal/logger"
 
 	"github.com/golang-jwt/jwt/v5"
 )

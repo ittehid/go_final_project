@@ -22,7 +22,7 @@
    `go test ./tests`
 
 **Docker-сборка**
-`docker build -t todo_scheduler .`
+`docker build -t go_final_project .`
 
 **Запуск контейнера Docker**
 1. База данных в проекте находится: `D:\Dev\go_final_project\data`

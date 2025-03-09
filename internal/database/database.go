@@ -2,9 +2,10 @@ package database
 
 import (
 	"fmt"
+	"os"
+
 	"go_final_project/config"
 	"go_final_project/internal/logger"
-	"os"
 
 	"github.com/jmoiron/sqlx"
 	_ "modernc.org/sqlite"
