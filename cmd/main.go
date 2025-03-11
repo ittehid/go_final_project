@@ -15,17 +15,19 @@ import (
 func main() {
 	port := getPort()
 
-	logger.LogMessage("server", "[INFO] Запуск инициализации базы данных")
+	defer logger.CloseLogger()
+
+	logger.LogMessage("[INFO] Запуск инициализации базы данных")
 	if err := database.InitDB(); err != nil {
-		logger.LogMessage("database", fmt.Sprintf("[ERROR] Ошибка инициализации базы данных: %v", err))
+		logger.LogMessage(fmt.Sprintf("[ERROR] Ошибка инициализации базы данных: %v", err))
 		return
 	}
 	defer database.CloseDB()
 
-	logger.LogMessage("server", fmt.Sprintf("[INFO] Сервер запущен. Порт: %s", port))
+	logger.LogMessage(fmt.Sprintf("[INFO] Сервер запущен. Порт: %s", port))
 
 	if err := runServer(port); err != nil {
-		logger.LogMessage("server", fmt.Sprintf("[ERROR] Ошибка запуска сервера: %v", err))
+		logger.LogMessage(fmt.Sprintf("[ERROR] Ошибка запуска сервера: %v", err))
 	}
 }
 
@@ -53,6 +55,6 @@ func runServer(port string) error {
 	mux.Handle("/", http.FileServer(http.Dir("web")))
 	mux.HandleFunc("/api/signin", scheduler.SignInHandler)
 
-	logger.LogMessage("server", "[INFO] Обработчики запросов успешно зарегистрированы")
+	logger.LogMessage("[INFO] Обработчики запросов успешно зарегистрированы")
 	return http.ListenAndServe(":"+port, mux)
 }

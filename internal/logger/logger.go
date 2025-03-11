@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 )
 
@@ -14,6 +15,8 @@ var (
 	logFile    *os.File
 	logger     *log.Logger
 	logChannel chan string
+	done       chan struct{}
+	wg         sync.WaitGroup
 )
 
 func init() {
@@ -21,7 +24,7 @@ func init() {
 		log.Fatalf("[ERROR] Папка для логов не создана: %v", err)
 	}
 
-	logFilePath := getLogFilePath("log")
+	logFilePath := getLogFilePath()
 	var err error
 	logFile, err = os.OpenFile(logFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
@@ -31,24 +34,34 @@ func init() {
 	logger = log.New(logFile, "", log.LstdFlags)
 
 	logChannel = make(chan string, 100)
+	done = make(chan struct{})
 
+	wg.Add(1)
 	go processLogs()
 }
 
-func getLogFilePath(logsType string) string {
+func getLogFilePath() string {
 	date := time.Now().Format("02-01-2006")
-	fileName := fmt.Sprintf("%s_%s.log", logsType, date)
-
+	fileName := fmt.Sprintf("log_%s.log", date)
 	return filepath.Join(logDir, fileName)
 }
 
 func processLogs() {
-	for msg := range logChannel {
-		logger.Println(msg)
+	defer wg.Done()
+	for {
+		select {
+		case msg, ok := <-logChannel:
+			if !ok {
+				return
+			}
+			logger.Println(msg)
+		case <-done:
+			return
+		}
 	}
 }
 
-func LogMessage(logsType, message string) {
+func LogMessage(message string) {
 	timestamp := time.Now().Format("02.01.2006 15:04:05")
 	formattedMessage := fmt.Sprintf("[%s] %s", timestamp, message)
 
@@ -60,6 +73,8 @@ func LogMessage(logsType, message string) {
 }
 
 func CloseLogger() {
+	close(done)
 	close(logChannel)
+	wg.Wait()
 	logFile.Close()
 }

@@ -34,13 +34,13 @@ type Credentials struct {
 func SignInHandler(w http.ResponseWriter, r *http.Request) {
 	var creds Credentials
 	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
-		logger.LogMessage("auth", fmt.Sprintf("[ERROR] Ошибка декодирования запроса: %v", err))
+		logger.LogMessage(fmt.Sprintf("[ERROR] Ошибка декодирования запроса: %v", err))
 		http.Error(w, `{"error":"Неверный формат запроса"}`, http.StatusBadRequest)
 		return
 	}
 
 	if todoPassword == "" || creds.Password != todoPassword {
-		logger.LogMessage("auth", "[ERROR] Неверная попытка авторизации")
+		logger.LogMessage("[ERROR] Неверная попытка авторизации")
 		http.Error(w, `{"error":"Неверный пароль"}`, http.StatusUnauthorized)
 		return
 	}
@@ -54,12 +54,12 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 
 	tokenString, err := token.SignedString(jwtSecret)
 	if err != nil {
-		logger.LogMessage("auth", fmt.Sprintf("[ERROR] Ошибка создания JWT-токена: %v", err))
+		logger.LogMessage(fmt.Sprintf("[ERROR] Ошибка создания JWT-токена: %v", err))
 		http.Error(w, `{"error":"Ошибка сервера"}`, http.StatusInternalServerError)
 		return
 	}
 
-	logger.LogMessage("auth", "[INFO] Пользователь успешно авторизован")
+	logger.LogMessage("[INFO] Пользователь успешно авторизован")
 	json.NewEncoder(w).Encode(map[string]string{"token": tokenString})
 }
 
@@ -68,7 +68,7 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		if todoPassword != "" {
 			cookie, err := r.Cookie("token")
 			if err != nil {
-				logger.LogMessage("auth", "[ERROR] Отсутствует токен в куки")
+				logger.LogMessage("[ERROR] Отсутствует токен в Cookie")
 				http.Error(w, "Требуется аутентификация", http.StatusUnauthorized)
 				return
 			}
@@ -78,21 +78,21 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			})
 
 			if err != nil || !token.Valid {
-				logger.LogMessage("auth", "[ERROR] Невалидный JWT-токен")
+				logger.LogMessage("[ERROR] Невалидный JWT-токен")
 				http.Error(w, "Требуется аутентификация", http.StatusUnauthorized)
 				return
 			}
 
 			claims, ok := token.Claims.(jwt.MapClaims)
 			if !ok {
-				logger.LogMessage("auth", "[ERROR] Ошибка получения данных из токена")
+				logger.LogMessage("[ERROR] Ошибка получения данных из токена")
 				http.Error(w, "Требуется аутентификация", http.StatusUnauthorized)
 				return
 			}
 
 			passwordHash := sha256.Sum256([]byte(todoPassword))
 			if claims["passwordHash"] != hex.EncodeToString(passwordHash[:]) {
-				logger.LogMessage("auth", "[ERROR] Токен не соответствует текущему паролю")
+				logger.LogMessage("[ERROR] Токен не соответствует текущему паролю")
 				http.Error(w, "Требуется аутентификация", http.StatusUnauthorized)
 				return
 			}
